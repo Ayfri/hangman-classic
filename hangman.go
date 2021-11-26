@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -18,14 +19,23 @@ const saveFilename = "save.txt"
 var hasWin bool
 
 func main() {
-	rand.Seed(time.Now().Unix())
-	word := chooseWordFromFile(os.Args[1])
-
+	var attempts int
 	var letters []string
 	var submittedLetters []string
-	lettersToReveal := len(word)/2 - 1
-	attempts := startAttempts
-	letters = setVisibleLetters(word, letters, lettersToReveal)
+	var word string
+	word, attempts, letters, submittedLetters = initGame()
+
+	if os.Args[2] == "--startsWith" {
+		if len(os.Args) > 3 {
+			newSaveFilename := os.Args[3]
+			var err error
+			attempts, letters, submittedLetters, word, err = recoverFromSave(newSaveFilename)
+			if err != nil {
+				word, attempts, letters, submittedLetters = initGame()
+			}
+		}
+	}
+
 
 	fmt.Printf("Good Luck, you have %v attempts.\n", attempts)
 	for {
@@ -40,7 +50,12 @@ func main() {
 			break
 		}
 
-		if len(submission) == 1 && isLetter(submission) {
+		if len(submission) == 1 {
+			if !isLetter(rune(submission[0])) {
+				fmt.Println("You can only submit letters")
+				continue
+			}
+
 			if isLetterSubmitted(submission, submittedLetters) {
 				fmt.Println("You already submitted this letter")
 				continue
@@ -86,10 +101,6 @@ func main() {
 	}
 }
 
-func printWord(letters []string) {
-	println(strings.Join(letters, " "))
-}
-
 func chooseWordFromFile(selectedFile string) string {
 	file, err := ioutil.ReadFile(selectedFile)
 	if err != nil {
@@ -110,8 +121,15 @@ func getLetter() (result string, doExit bool) {
 	return letter, letter == exit
 }
 
-func isLetter(letter string) bool {
-	return letter >= "a" && letter <= "z"
+func initGame() (word string, attempts int, letters []string, submittedLetters []string) {
+	rand.Seed(time.Now().Unix())
+	word = chooseWordFromFile(os.Args[1])
+	lettersToReveal := len(word)/2 - 1
+	return word, startAttempts, setVisibleLetters(word, []string{}, lettersToReveal), []string{}
+}
+
+func isLetter(letter rune) bool {
+	return letter >= 'A' && letter <= 'Z'
 }
 
 func isLetterInWord(letter string, word string) bool {
@@ -141,6 +159,10 @@ func isWordGuessed(letters []string, word string) bool {
 	return true
 }
 
+func printWord(letters []string) {
+	fmt.Println(strings.Join(letters, " "))
+}
+
 func setVisibleLetters(word string, letters []string, lettersToReveal int) []string {
 	for i := 0; i < len(word); i++ {
 		letters = append(letters, "_")
@@ -160,6 +182,23 @@ func readLine() string {
 		log.Fatalf("Error reading line : %v", err)
 	}
 	return line
+}
+
+func recoverFromSave(saveFilename string) (attempts int, letters, submittedLetters []string, word string, err error) {
+	file, err := ioutil.ReadFile(saveFilename)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	data := Data{}
+	err = json.Unmarshal(file, &data)
+	if err != nil {
+		fmt.Println("Cannot read save file, data of this game will recreated.")
+		return startAttempts, []string{}, []string{}, "", err
+	}
+
+	fmt.Println("Game recovered from save.")
+	return data.Attempts, strings.Split(data.ActualWord, ""), data.LettersSubmitted, data.Word, nil
 }
 
 func win() {

@@ -13,36 +13,8 @@ type Data struct {
 	Word             string   `json:"word"`
 }
 
-func NewData() *Data {
-	return &Data{
-		ActualWord:       "",
-		Attempts:         0,
-		LettersSubmitted: []string{},
-		Word:             "",
-	}
-}
-
 func (d *Data) MarshalJSON() (result []byte, err error) {
 	return json.MarshalIndent(*d, "", "")
-}
-
-func (d *Data) UnmarshalJSON(b []byte) error {
-	var data Data
-	if err := json.Unmarshal(b, &data); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (d *Data) GetFromJSONFile(filename string) error {
-	file, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return err
-	}
-	if err := json.Unmarshal(file, d); err != nil {
-		return err
-	}
-	return nil
 }
 
 func (d *Data) SaveInJSONFile(fileName string) error {
