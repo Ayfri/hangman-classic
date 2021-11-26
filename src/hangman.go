@@ -41,43 +41,40 @@ func main() {
 	attempts := 10
 	for {
 		println(strings.Join(letters, " "))
-		letter, doExit := getLetter()
+		submission, doExit := getLetter()
 		if doExit {
 			break
 		}
 
-		if !isLetterInWord(letter, word) {
-			attempts--
-			fmt.Printf("Wrong letter, attempts: %v\n", attempts)
-			continue
+		if submission == word {
+			break
 		}
+
+		if len(submission) == 1 && isLetter(submission) {
+			if !isLetterInWord(submission, word) {
+				attempts--
+				fmt.Printf("Wrong submission, attempts: %v\n", attempts)
+				continue
+			}
+		} else {
+			attempts -= 2
+		}
+
 		for i := 0; i < len(word); i++ {
-			if string(word[i]) == letter {
-				letters[i] = letter
+			if string(word[i]) == submission {
+				letters[i] = submission
 			}
 		}
 		if isWordGuessed(letters, word) {
-			fmt.Printf("You won!")
 			break
 		}
 	}
-
-	fmt.Printf(strings.Join(letters, ""))
+	fmt.Printf("You won!")
 }
 
 func getLetter() (result string, doExit bool) {
-	var letter string
-	for {
-		letter = strings.ToLower(readLine())
-		if letter == exit {
-			return "", true
-		}
-		if len(letter) == 1 && isLetter(letter) {
-			break
-		}
-		fmt.Println("Please enter a single letter")
-	}
-	return letter, false
+	letter := strings.ToLower(readLine())
+	return letter, letter == exit
 }
 
 func isLetterInWord(letter string, word string) bool {
