@@ -12,6 +12,7 @@ import (
 )
 
 const exit = "STOP"
+const startAttempts = 10
 
 func main() {
 	rand.Seed(time.Now().Unix())
@@ -20,11 +21,12 @@ func main() {
 	var letters []string
 	var submittedLetters []string
 	lettersToReveal := len(word)/2 - 1
+	attempts := startAttempts
 	letters = setVisibleLetters(word, letters, lettersToReveal)
 
-	attempts := 10
+	fmt.Printf("Good Luck, you have %v attempts.\n", attempts)
 	for {
-		println(strings.Join(letters, " "))
+		printWord(letters)
 		submission, doExit := getLetter()
 		if doExit {
 			break
@@ -44,7 +46,7 @@ func main() {
 			submittedLetters = append(submittedLetters, submission)
 			if !isLetterInWord(submission, word) {
 				attempts--
-				fmt.Printf("Wrong submission, attempts: %v\n", attempts)
+				fmt.Printf("Not present in the word, %v attempts remaining\n", attempts)
 				continue
 			}
 		} else {
@@ -63,6 +65,10 @@ func main() {
 	}
 }
 
+func printWord(letters []string) {
+	println(strings.Join(letters, " "))
+}
+
 func chooseWordFromFile(selectedFile string) string {
 	file, err := ioutil.ReadFile(selectedFile)
 	if err != nil {
@@ -73,11 +79,12 @@ func chooseWordFromFile(selectedFile string) string {
 		}
 	}
 	split := strings.Split(string(file), "\n")
-	return split[rand.Intn(len(split))]
+	return strings.ToUpper(split[rand.Intn(len(split))])
 }
 
 func getLetter() (result string, doExit bool) {
-	letter := strings.ToLower(readLine())
+	fmt.Print("Choose: ")
+	letter := strings.ToUpper(readLine())
 	return letter, letter == exit
 }
 
