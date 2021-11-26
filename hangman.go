@@ -11,6 +11,13 @@ import (
 	"time"
 )
 
+type Data struct {
+	ActualWord       string   `json:"actual_word"`
+	Attempts         int      `json:"attempts"`
+	LettersSubmitted []string `json:"letters_submitted"`
+	Word             string   `json:"word"`
+}
+
 const exit = "STOP"
 const startAttempts = 10
 
@@ -93,12 +100,12 @@ func isLetter(letter string) bool {
 }
 
 func isLetterInWord(letter string, word string) bool {
-    for i := 0; i < len(word); i++ {
-        if string(word[i]) == letter {
-            return true
-        }
-    }
-    return false
+	for i := 0; i < len(word); i++ {
+		if string(word[i]) == letter {
+			return true
+		}
+	}
+	return false
 }
 
 func isLetterSubmitted(submission string, letter []string) bool {
