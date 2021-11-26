@@ -29,8 +29,6 @@ func main() {
 	var word string
 	flag.Parse()
 
-	fmt.Println(os.Args)
-	fmt.Println(*saveFilename)
 	if len(os.Args) > 2 {
 		attempts, letters, submittedLetters, word, err = recoverFromSave(*saveFilename)
 		if err != nil {
@@ -44,6 +42,11 @@ func main() {
 	}
 
 	for {
+		if attempts <= 0 {
+			fmt.Println("You lost, the word was:", word)
+			break
+		}
+
 		printWord(letters)
 		submission, doExit := getLetter()
 		if doExit {
@@ -224,5 +227,5 @@ func recoverFromSave(saveFilename string) (attempts int, letters, submittedLette
 
 func win() {
 	hasWin = true
-	fmt.Printf("You won!")
+	fmt.Printf("Congrats !")
 }
