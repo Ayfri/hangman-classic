@@ -11,15 +11,11 @@ import (
 	"time"
 )
 
-type Data struct {
-	ActualWord       string   `json:"actual_word"`
-	Attempts         int      `json:"attempts"`
-	LettersSubmitted []string `json:"letters_submitted"`
-	Word             string   `json:"word"`
-}
-
 const exit = "STOP"
 const startAttempts = 10
+const saveFilename = "save.txt"
+
+var hasWin bool
 
 func main() {
 	rand.Seed(time.Now().Unix())
@@ -70,6 +66,24 @@ func main() {
 			break
 		}
 	}
+
+	if !hasWin {
+		fmt.Printf("Saving data in %v\n", saveFilename)
+		data := Data{
+			Attempts:         attempts,
+			ActualWord:       strings.Join(letters, ""),
+			LettersSubmitted: submittedLetters,
+			Word:             word,
+		}
+		if submittedLetters == nil {
+			data.LettersSubmitted = []string{}
+		}
+
+		err := data.SaveInJSONFile(saveFilename)
+		if err != nil {
+			fmt.Printf("Error saving data: %v\nSave is empty.", err)
+		}
+	}
 }
 
 func printWord(letters []string) {
@@ -86,7 +100,8 @@ func chooseWordFromFile(selectedFile string) string {
 		}
 	}
 	split := strings.Split(string(file), "\n")
-	return strings.ToUpper(split[rand.Intn(len(split))])
+	randIndex := rand.Intn(len(split))
+	return strings.ToUpper(split[randIndex])
 }
 
 func getLetter() (result string, doExit bool) {
@@ -148,5 +163,6 @@ func readLine() string {
 }
 
 func win() {
+	hasWin = true
 	fmt.Printf("You won!")
 }
