@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+const exit = "STOP"
+
 func main() {
 	rand.Seed(time.Now().Unix())
 	selectedFile := os.Args[1]
@@ -39,10 +41,11 @@ func main() {
 	attempts := 10
 	for {
 		println(strings.Join(letters, " "))
-		letter := getLetter()
-		if letter == "exit" {
+		letter, doExit := getLetter()
+		if doExit {
 			break
 		}
+
 		if !isLetterInWord(letter, word) {
 			attempts--
 			fmt.Printf("Wrong letter, attempts: %v\n", attempts)
@@ -62,16 +65,19 @@ func main() {
 	fmt.Printf(strings.Join(letters, ""))
 }
 
-func getLetter() string {
+func getLetter() (result string, doExit bool) {
 	var letter string
 	for {
 		letter = strings.ToLower(readLine())
+		if letter == exit {
+			return "", true
+		}
 		if len(letter) == 1 && isLetter(letter) {
 			break
 		}
 		fmt.Println("Please enter a single letter")
 	}
-	return letter
+	return letter, false
 }
 
 func isLetterInWord(letter string, word string) bool {
