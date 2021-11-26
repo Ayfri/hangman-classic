@@ -70,6 +70,7 @@ func main() {
 			if !isLetterInWord(submission, word) {
 				attempts--
 				fmt.Printf("Not present in the word, %v attempts remaining\n", attempts)
+				fmt.Println(getHangmanPosition(9 - attempts))
 				continue
 			}
 		} else {
@@ -118,6 +119,16 @@ func chooseWordFromFile(selectedFile string) string {
 	split := strings.Split(string(file), "\n")
 	randIndex := rand.Intn(len(split))
 	return strings.ToUpper(split[randIndex])
+}
+
+func getHangmanPosition(position int) string {
+	file, err := ioutil.ReadFile("resources/hangman.txt")
+	if err != nil {
+		log.Fatalf("Error reading hangman file : %v", err)
+	}
+	content := string(file)
+	split := strings.Split(content, "\n\n")
+	return split[position]
 }
 
 func getLetter() (result string, doExit bool) {
