@@ -27,7 +27,6 @@ func main() {
 	var letters []string
 	var submittedLetters []string
 	var word string
-	word, attempts, letters, submittedLetters = initGame()
 	flag.Parse()
 
 	fmt.Println(os.Args)
@@ -40,6 +39,7 @@ func main() {
 			fmt.Printf("Welcome back, you have %v attempts remaining.\n", attempts)
 		}
 	} else {
+		word, attempts, letters, submittedLetters = initGame()
 		fmt.Printf("Good Luck, you have %v attempts.\n", attempts)
 	}
 
@@ -165,7 +165,7 @@ func isWordGuessed(letters []string, word string) bool {
 }
 
 func printWord(letters []string) {
-	fmt.Println(strings.Join(letters, " "))
+	fmt.Println(strings.Join(letters, " ") + "\n")
 }
 
 func setVisibleLetters(word string, letters []string, lettersToReveal int) []string {
@@ -207,7 +207,7 @@ func recoverFromSave(saveFilename string) (attempts int, letters, submittedLette
 		return startAttempts, []string{}, []string{}, "", err
 	}
 
-	fmt.Printf("Game recovered from save file %v\n.", saveFilename)
+	fmt.Printf("Game recovered from save file %v.\n", saveFilename)
 	return data.Attempts, strings.Split(data.ActualWord, ""), data.LettersSubmitted, data.Word, nil
 }
 
