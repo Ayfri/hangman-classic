@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -12,32 +13,36 @@ import (
 	"time"
 )
 
-const exit = "STOP"
-const startAttempts = 10
-const saveFilename = "save.txt"
+const (
+	exit          = "STOP"
+	startAttempts = 10
+)
 
+var saveFilename = flag.String("startWith", "save.txt", "File to save the game")
 var hasWin bool
 
 func main() {
 	var attempts int
+	var err error
 	var letters []string
 	var submittedLetters []string
 	var word string
 	word, attempts, letters, submittedLetters = initGame()
+	flag.Parse()
 
-	if os.Args[2] == "--startsWith" {
-		if len(os.Args) > 3 {
-			newSaveFilename := os.Args[3]
-			var err error
-			attempts, letters, submittedLetters, word, err = recoverFromSave(newSaveFilename)
-			if err != nil {
-				word, attempts, letters, submittedLetters = initGame()
-			}
+	fmt.Println(os.Args)
+	fmt.Println(*saveFilename)
+	if len(os.Args) > 2 {
+		attempts, letters, submittedLetters, word, err = recoverFromSave(*saveFilename)
+		if err != nil {
+			word, attempts, letters, submittedLetters = initGame()
+		} else {
+			fmt.Printf("Welcome back, you have %v attempts remaining.\n", attempts)
 		}
+	} else {
+		fmt.Printf("Good Luck, you have %v attempts.\n", attempts)
 	}
 
-
-	fmt.Printf("Good Luck, you have %v attempts.\n", attempts)
 	for {
 		printWord(letters)
 		submission, doExit := getLetter()
@@ -94,7 +99,7 @@ func main() {
 			data.LettersSubmitted = []string{}
 		}
 
-		err := data.SaveInJSONFile(saveFilename)
+		err := data.SaveInJSONFile(*saveFilename)
 		if err != nil {
 			fmt.Printf("Error saving data: %v\nSave is empty.", err)
 		}
@@ -187,7 +192,12 @@ func readLine() string {
 func recoverFromSave(saveFilename string) (attempts int, letters, submittedLetters []string, word string, err error) {
 	file, err := ioutil.ReadFile(saveFilename)
 	if err != nil {
-		log.Fatal(err)
+		if errors.Is(err, os.ErrNotExist) {
+			fmt.Printf("Save file %v has not been found, a new game will start.\n", saveFilename)
+			return startAttempts, []string{}, []string{}, "", err
+		} else {
+			log.Fatalf("Error reading file : %v", err)
+		}
 	}
 
 	data := Data{}
@@ -197,7 +207,7 @@ func recoverFromSave(saveFilename string) (attempts int, letters, submittedLette
 		return startAttempts, []string{}, []string{}, "", err
 	}
 
-	fmt.Println("Game recovered from save.")
+	fmt.Printf("Game recovered from save file %v\n.", saveFilename)
 	return data.Attempts, strings.Split(data.ActualWord, ""), data.LettersSubmitted, data.Word, nil
 }
 
