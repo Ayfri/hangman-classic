@@ -18,8 +18,10 @@ const (
 	startAttempts = 10
 )
 
-var saveFilename = flag.String("startWith", "save.txt", "File to save the game")
+var asciiLettersFile = flag.String("letterFile", "", "Use ASCII letters from file")
+var asciiLetters = map[rune]string{}
 var hasWin bool
+var saveFilename = flag.String("startWith", "", "File to save the game")
 
 func main() {
 	var attempts int
@@ -39,6 +41,17 @@ func main() {
 	} else {
 		word, attempts, letters, submittedLetters = initGame()
 		fmt.Printf("Good Luck, you have %v attempts.\n", attempts)
+	}
+
+	if *saveFilename == "" {
+		*saveFilename = "save.txt"
+	}
+
+	if *asciiLettersFile != "" {
+		for i := 'A'; i <= 'Z'; i++ {
+			asciiLetters[i] = getAsciiLetter(*asciiLettersFile, i - ('a' - 'A'))
+		}
+		asciiLetters['_'] = getAsciiLetter(*asciiLettersFile, 63)
 	}
 
 	for {
@@ -111,15 +124,13 @@ func main() {
 }
 
 func chooseWordFromFile(selectedFile string) string {
-	file, err := ioutil.ReadFile(selectedFile)
+	content, err := readFile(selectedFile)
 	if err != nil {
-		if errors.Is(err, os.ErrNotExist) {
-			log.Fatal("File does not exist")
-		} else {
-			log.Fatalf("Error reading file : %v", err)
-		}
+		fmt.Printf("Error reading file: %v\n", err)
+		win()
+		return ""
 	}
-	split := strings.Split(string(file), "\n")
+	split := strings.Split(content, "\n")
 	randIndex := rand.Intn(len(split))
 	return strings.ToUpper(split[randIndex])
 }
@@ -132,6 +143,15 @@ func getHangmanPosition(position int) string {
 	content := string(file)
 	split := strings.Split(content, "\n\n")
 	return split[position]
+}
+
+func getAsciiLetter(file string, letter rune) string {
+	content, err := readFile(file)
+	if err != nil {
+		log.Fatalf("Error reading file : %v", err)
+	}
+	split := strings.Split(content, "\n\n")
+	return split[letter]
 }
 
 func getLetter() (result string, doExit bool) {
@@ -179,7 +199,29 @@ func isWordGuessed(letters []string, word string) bool {
 }
 
 func printWord(letters []string) {
-	fmt.Println(strings.Join(letters, " ") + "\n")
+	if len(asciiLetters) > 1 {
+		str := strings.Join(letters, " ") + "\n"
+		var array []string
+		for i := range str {
+			array = append(array, asciiLetters[rune(str[i])])
+		}
+		result := ""
+		limit := len(strings.Split(array[0], "\n"))
+		for i := 0; i < limit; i++ {
+			for _, letter := range array {
+				for index, line := range strings.Split(letter, "\n") {
+					if index == i {
+						result += line + "  "
+					}
+				}
+			}
+			result += "\n"
+		}
+
+		fmt.Println(result)
+	} else {
+		fmt.Println(strings.Join(letters, " ") + "\n")
+	}
 }
 
 func setVisibleLetters(word string, letters []string, lettersToReveal int) []string {
@@ -192,6 +234,19 @@ func setVisibleLetters(word string, letters []string, lettersToReveal int) []str
 		letters[index] = string(word[index])
 	}
 	return letters
+}
+
+func readFile(selectedFile string) (string, error) {
+	file, err := ioutil.ReadFile(selectedFile)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			log.Fatal("File does not exist")
+		} else {
+			log.Fatalf("Error reading file : %v", err)
+		}
+		return "", err
+	}
+	return string(file), nil
 }
 
 func readLine() string {
