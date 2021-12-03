@@ -49,7 +49,7 @@ func main() {
 
 	if *asciiLettersFile != "" {
 		for i := 'A'; i <= 'Z'; i++ {
-			asciiLetters[i] = getAsciiLetter(*asciiLettersFile, i - ('a' - 'A'))
+			asciiLetters[i] = getAsciiLetter(*asciiLettersFile, i-('a'-'A'))
 		}
 		asciiLetters['_'] = getAsciiLetter(*asciiLettersFile, 63)
 	}
