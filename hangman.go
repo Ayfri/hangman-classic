@@ -105,7 +105,7 @@ func main() {
 	}
 
 	if !hasWin {
-		fmt.Printf("Saving data in %v\n", saveFilename)
+		fmt.Printf("Saving data in '%v'.\n", *saveFilename)
 		data := Data{
 			Attempts:         attempts,
 			ActualWord:       strings.Join(letters, ""),
