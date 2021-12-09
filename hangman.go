@@ -18,10 +18,10 @@ const (
 	startAttempts = 10
 )
 
-var asciiLettersFile = flag.String("letterFile", "", "Use ASCII letters from file")
+var asciiLettersFile = flag.String("letterFile", "", "Use ASCII letters from file.")
 var asciiLetters = map[rune]string{}
 var hasWin bool
-var saveFilename = flag.String("startWith", "", "File to save the game")
+var saveFilename = flag.String("startWith", "", "File to save the game.")
 
 func main() {
 	var attempts int
@@ -30,6 +30,12 @@ func main() {
 	var submittedLetters []string
 	var word string
 	flag.Parse()
+
+	if len(os.Args) < 2 {
+		fmt.Println("Usage: hangman [options] word")
+		flag.PrintDefaults()
+		os.Exit(1)
+	}
 
 	if len(os.Args) > 2 {
 		attempts, letters, submittedLetters, word, err = recoverFromSave(*saveFilename)
